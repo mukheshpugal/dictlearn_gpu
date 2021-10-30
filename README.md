@@ -2,6 +2,11 @@
 
 [Cuda](https://en.wikipedia.org/wiki/CUDA) implementations of dictionary learning algorithms. This project was inspired by the [dictlearn](https://github.com/permfl/dictlearn) python library.
 
+## Setup
+- Install required packages with `pip install -r requirements.txt`
+- Requires c++ compiler and `nvcc` to be in PATH.
+
+
 ## Usage
 Use this module as follows:
 
