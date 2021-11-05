@@ -10,6 +10,23 @@
 ## Usage
 Use this module as follows:
 
+### High level API
+#### Train a dictionary
+```py
+from dictlearn_gpu import train_dict
+from dictlearn_gpu.utils import dct_dict_1d
+
+signals = ... # Load signals. Shape == (L, N)
+
+dictionary = dct_dict_1d(
+    n_atoms=32,
+    size=L,
+)
+
+new_dictionary, errors, iters = train_dict(signals, dictionary, sparsity_target=8)
+```
+
+### Low level API
 #### OMP-batch
 ```py
 import numpy as np
