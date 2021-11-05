@@ -15,7 +15,7 @@ try:
 except FileNotFoundError:
     raise FileNotFoundError("ompbatch.cu not in src directory")
 
-omp_batch_core = cp.RawModule(code=source).get_function("omp_batch")
+_omp_batch_core = cp.RawModule(code=source).get_function("omp_batch")
 
 
 class OmpBatch:
@@ -63,7 +63,7 @@ class OmpBatch:
         """
         a_0 = cp.asfortranarray(to_gpu(a_0))
         gram = to_gpu(gram)
-        omp_batch_core(
+        _omp_batch_core(
             (self.batch_size,),
             (1,),
             (
@@ -80,5 +80,5 @@ class OmpBatch:
             ),
         )
         if as_gpu:
-            return self.gamma_gpu
+            return self.gamma_gpu.T
         return cp.asnumpy(self.gamma_gpu).T
