@@ -2,10 +2,10 @@
 
 [Cuda](https://en.wikipedia.org/wiki/CUDA) implementations of dictionary learning algorithms. This project was inspired by the [dictlearn](https://github.com/permfl/dictlearn) python library.
 
-## Setup
-- Install required packages with `pip install -r requirements.txt`
-- Install appropriate version of [cupy](https://docs.cupy.dev/en/stable/install.html#installing-cupy) based on the installed version of CUDA.
-- Requires `nvcc` to be in PATH.
+## Install
+1. This package requires Python 3+ installed. You can install it from the official website (https://www.python.org/downloads/)
+2. This package also requires `nvcc` to be installed and requires it to be in `PATH`.
+3. Install this package with `python3 -m pip install git+https://github.com/mukheshpugal/dictlearn_gpu.git@master`
 
 ## Usage
 Use this module as follows:

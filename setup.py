@@ -14,7 +14,7 @@ try:
         .replace(".", "")
     )
 except FileNotFoundError:
-    raise Exception("nvcc not installed.")
+    raise Exception("nvcc not in PATH.")
 
 setup(
     name="dictlearn-gpu",
