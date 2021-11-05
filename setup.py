@@ -1,9 +1,20 @@
 import pathlib
 from setuptools import setup, find_packages
+import subprocess
 
 HERE = pathlib.Path(__file__).parent
 
 README = (HERE / "README.md").read_text()
+
+try:
+    cuda_version = (
+        subprocess.run(["nvcc", "-V"], stdout=subprocess.PIPE, text=True)
+        .stdout.split("release ")[-1]
+        .split(",")[0]
+        .replace(".", "")
+    )
+except FileNotFoundError:
+    raise Exception("nvcc not installed.")
 
 setup(
     name="dictlearn-gpu",
@@ -18,6 +29,6 @@ setup(
     packages=find_packages(),
     install_requires=[
         "numpy",
-        "cupy",
+        f"cupy-cuda{cuda_version}",
     ],
 )
