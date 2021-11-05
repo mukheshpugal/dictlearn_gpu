@@ -28,3 +28,13 @@ decomp = ob.omp_batch(a_0=dictionary.T @ signals, gram=dictionary.T @ dictionary
 
 print(np.sum((signals - dictionary.dot(decomp)) ** 2))  # Reconstruction error
 ```
+
+#### MOD
+```py
+from dictlearn_gpu import update_dict_mod
+
+signals = ... # Load signals
+decomp = ... # Sparse decomposition
+
+updated_dictionary = update_dict_mod(signals, decomp)
+```
