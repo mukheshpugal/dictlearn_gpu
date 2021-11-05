@@ -27,6 +27,9 @@ setup(
     author_email="mukheshpugalendhi@gmail.com",
     license="MIT",
     packages=find_packages(),
+    package_data={
+        "dictlearn_gpu": ["src/ompbatch.cu"],
+    },
     install_requires=[
         "numpy",
         f"cupy-cuda{cuda_version}",
