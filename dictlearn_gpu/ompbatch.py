@@ -1,17 +1,21 @@
 from pathlib import Path
 
-import numpy as np
-import pycuda.autoinit
-import pycuda.driver as cuda
-from pycuda.compiler import SourceModule
+import cupy as cp
+
+from .utils import to_gpu
 
 try:
     with open(Path(__file__).parents[0] / "src/ompbatch.cu") as f:
-        source = f.read()
+        source = """
+        extern "C" {{
+            {}
+        }}
+        """
+        source = source.format(f.read())
 except FileNotFoundError:
     raise FileNotFoundError("ompbatch.cu not in src directory")
 
-omp_batch_core = SourceModule(source).get_function("omp_batch")
+omp_batch_core = cp.RawModule(code=source).get_function("omp_batch")
 
 
 class OmpBatch:
@@ -32,50 +36,49 @@ class OmpBatch:
             batch_size (int): Batches to run in parallel.
             epsilon (float): Small scalar for numerical stability.
         """
-        self.n_atoms = np.int32(n_atoms)
-        self.sparsity_target = np.int32(sparsity_target)
+        self.n_atoms = cp.int32(n_atoms)
+        self.sparsity_target = cp.int32(sparsity_target)
         self.batch_size = batch_size
-        self.epsilon = np.float32(epsilon)
+        self.epsilon = cp.float32(epsilon)
 
-        self.L_gpu = cuda.mem_alloc(batch_size * sparsity_target ** 2 * 4)
-        self.I_gpu = cuda.mem_alloc(batch_size * sparsity_target * 4)
-        self.w_gpu = cuda.mem_alloc(batch_size * sparsity_target * 4)
+        self.L_gpu = cp.zeros((batch_size, sparsity_target, sparsity_target), dtype=cp.float32)
+        self.I_gpu = cp.zeros((batch_size, sparsity_target), dtype=cp.float32)
+        self.w_gpu = cp.zeros((batch_size, sparsity_target), dtype=cp.float32)
 
-        self.a_gpu = cuda.mem_alloc(batch_size * n_atoms * 4)
-        self.a_0_gpu = cuda.mem_alloc(batch_size * n_atoms * 4)
-        self.gamma_gpu = cuda.mem_alloc(batch_size * n_atoms * 4)
-
-        self.gamma = np.zeros(batch_size * n_atoms, dtype=np.float32)
-
-        self.gram_gpu = cuda.mem_alloc(n_atoms ** 2 * 4)
+        self.a_gpu = cp.zeros((batch_size, n_atoms), dtype=cp.float32)
+        self.gamma_gpu = cp.zeros((batch_size, n_atoms), dtype=cp.float32)
 
         self.n_bytes = batch_size * (sparsity_target * (2 + sparsity_target) + 3 * n_atoms) + n_atoms ** 2
 
-    def omp_batch(self, a_0, gram):
+    def omp_batch(self, a_0, gram, as_gpu=False):
         """
         Omp batch algorithm.
 
         Args:
-            a_0 (np.ndarray): Set of vectors [D^T @ X].
-            gram (np.ndarray): Gram matrix [D^T @ D].
+            a_0 (np.ndarray | cp.ndarray): Set of vectors [D^T @ X].
+            gram (np.ndarray | cp.ndarray): Gram matrix [D^T @ D].
+            as_gpu (bool): Get output as cp.ndarray.
         Returns:
             np.ndarray: Sparse encodings.
         """
-        cuda.memcpy_htod(self.a_0_gpu, a_0.astype(np.float32).transpose().reshape(-1))
-        cuda.memcpy_htod(self.gram_gpu, gram.astype(np.float32))
+        a_0 = cp.asfortranarray(to_gpu(a_0))
+        gram = to_gpu(gram)
         omp_batch_core(
-            self.a_0_gpu,
-            self.gram_gpu,
-            self.sparsity_target,
-            self.n_atoms,
-            self.I_gpu,
-            self.L_gpu,
-            self.w_gpu,
-            self.a_gpu,
-            self.gamma_gpu,
-            self.epsilon,
-            block=(1, 1, 1),
-            grid=(self.batch_size, 1, 1),
+            (self.batch_size,),
+            (1,),
+            (
+                a_0,
+                gram,
+                self.sparsity_target,
+                self.n_atoms,
+                self.I_gpu,
+                self.L_gpu,
+                self.w_gpu,
+                self.a_gpu,
+                self.gamma_gpu,
+                self.epsilon,
+            ),
         )
-        cuda.memcpy_dtoh(self.gamma, self.gamma_gpu)
-        return self.gamma.reshape(self.batch_size, -1).T
+        if as_gpu:
+            return self.gamma_gpu
+        return cp.asnumpy(self.gamma_gpu).T

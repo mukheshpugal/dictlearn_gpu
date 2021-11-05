@@ -1,4 +1,11 @@
+import cupy as cp
 import numpy as np
+
+
+def to_gpu(mat):
+    if not isinstance(mat, cp.ndarray):
+        return cp.asarray(mat, dtype=cp.float32)
+    return mat
 
 
 def dct_dict_1d(n_atoms, size):

@@ -4,8 +4,8 @@
 
 ## Setup
 - Install required packages with `pip install -r requirements.txt`
-- Requires c++ compiler and `nvcc` to be in PATH.
-
+- Install appropriate version of [cupy](https://docs.cupy.dev/en/stable/install.html#installing-cupy) based on the installed version of CUDA.
+- Requires `nvcc` to be in PATH.
 
 ## Usage
 Use this module as follows:
