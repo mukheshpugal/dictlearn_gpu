@@ -70,7 +70,7 @@ def train_dict(
 
         # Run callbacks
         for callback in callbacks:
-            callback(dict_state, signals, error)
+            callback(dict_state, signals, error, iter)
 
         # Print stats
         if verbose >= 1:
