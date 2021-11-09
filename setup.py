@@ -8,7 +8,7 @@ README = (HERE / "README.md").read_text()
 
 try:
     cuda_version = (
-        subprocess.run(["nvcc", "-V"], stdout=subprocess.PIPE, text=True)
+        subprocess.run(["nvcc", "-V"], stdout=subprocess.PIPE, encoding='utf8')
         .stdout.split("release ")[-1]
         .split(",")[0]
         .replace(".", "")
