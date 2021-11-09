@@ -38,6 +38,12 @@ def train_dict(
         min_error (float): Minimum error.
         max_iters (int): Maximum iterations.
         callbacks (list): List of functions to call once every iteration.
+            Callbacks shoud take the following arguments:
+                dict_state (cp.ndarray): Current dictionary.
+                signals (cp.ndarray): Set of training signals.
+                error (cp.float32): Current training error.
+                iter (int): Current iteration.
+                ob (OmpBatch): OMP Batch object.
         verbose (int): Verbosity level.
         as_gpu (bool): Get output as cp.ndarray.
 
@@ -70,7 +76,7 @@ def train_dict(
 
         # Run callbacks
         for callback in callbacks:
-            callback(dict_state, signals, error, iter)
+            callback(dict_state, signals, error, iter, ob)
 
         # Print stats
         if verbose >= 1:
